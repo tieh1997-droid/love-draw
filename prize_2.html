@@ -63,12 +63,12 @@
 
 <body>
   <div class="card">
-    <h1>🎀 哈哈哈 紧不紧张 再点下去吧 🎀</h1>
+    <h1 id="title">🎀 哈哈哈 紧不紧张 再点下去吧 🎀</h1>
 
     <div id="msg" class="msg">
       美中不足的是 至少不是最后一奖<br>
       恭喜你 获得rm52.10<br>
-      
+      下次再继续加油吧😘😘
     </div>
 
     <button id="revealBtn" class="btn" onclick="reveal()">
@@ -86,11 +86,12 @@
   </div>
 
   <script>
-    function reveal(){
-      document.getElementById("msg").style.display = "block";
-      document.getElementById("payBtn").style.display = "inline-block";
-      document.getElementById("revealBtn").style.display = "none";
-    }
-  </script>
+  function reveal(){
+    document.getElementById("msg").style.display = "block";
+    document.getElementById("payBtn").style.display = "inline-block";
+    document.getElementById("revealBtn").style.display = "none";
+    document.getElementById("title").style.display = "none"; // 👈 隐藏 h1
+  }
+</script>
 </body>
 </html>
