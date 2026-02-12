@@ -1,26 +1,97 @@
 <!doctype html>
 <html lang="zh-Hans">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>🎁 扫码惊喜卡</title>
+
   <style>
-    body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Arial;
-      background:radial-gradient(circle at top,#fff,#ffe8ef,#ffd2e0);padding:24px}
-    .card{background:#fff;border-radius:18px;padding:28px 20px;max-width:420px;text-align:center;
-      box-shadow:0 16px 40px rgba(0,0,0,.15)}
-    h1{font-size:20px;margin-bottom:12px}
-    .msg{font-size:18px;font-weight:700;display:none;margin-top:10px}
-    button{margin-top:14px;background:#FF8996;color:#fff;border:0;padding:12px 18px;border-radius:12px;
-      font-size:15px;font-weight:700}
+      background:radial-gradient(circle at top,#ffffff,#ffe8ef,#ffd2e0);
+      padding:24px;
+    }
+    .card{
+      background:#ffffff;
+      border-radius:18px;
+      padding:28px 22px;
+      max-width:420px;
+      width:100%;
+      text-align:center;
+      box-shadow:0 16px 40px rgba(0,0,0,.15);
+    }
+    h1{
+      font-size:20px;
+      margin-bottom:14px;
+    }
+    .msg{
+      display:none;
+      font-size:18px;
+      font-weight:700;
+      line-height:1.6;
+      margin-top:12px;
+    }
+    .btn{
+      margin-top:18px;
+      background:#FF8996;
+      color:#fff;
+      border:none;
+      padding:12px 20px;
+      border-radius:12px;
+      font-size:15px;
+      font-weight:700;
+      cursor:pointer;
+      display:inline-block;
+      text-decoration:none;
+    }
+    .pay{
+      display:none;
+      background:#28c76f;
+    }
+    .hint{
+      margin-top:10px;
+      font-size:12px;
+      opacity:.65;
+    }
   </style>
 </head>
+
 <body>
   <div class="card">
-    <h1>🎀 你的惊喜卡 🎀</h1>
-    <div id="msg" class="msg">恭喜抽到rm131.40 爱你哦</div>
-    <button onclick="document.getElementById('msg').style.display='block'">点我揭晓 💗</button>
+    <h1 id="title">🎀 哈哈哈 紧不紧张 再点下去吧 🎀</h1>
+
+    <div id="msg" class="msg">
+      哎呀 差点就能破百<br>
+      恭喜你只有获得rm88.88<br>
+      祝宝贝早日发大财💰
+    </div>
+
+    <button id="revealBtn" class="btn" onclick="reveal()">
+      点我揭晓 💗
+    </button>
+
+    <a id="payBtn"
+       class="btn pay"
+       href=" tng link "
+       target="_blank">
+       点击这里收红包 🧧
+    </a>
+
+    <div class="hint"></div>
   </div>
+
+  <script>
+  function reveal(){
+    document.getElementById("msg").style.display = "block";
+    document.getElementById("payBtn").style.display = "inline-block";
+    document.getElementById("revealBtn").style.display = "none";
+    document.getElementById("title").style.display = "none"; // 👈 隐藏 h1
+  }
+</script>
 </body>
 </html>
