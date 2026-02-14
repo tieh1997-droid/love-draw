@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>🎮 找出真爱心（困难版）</title>
+  <title>🎮 找出唯一不同（RM520关卡）</title>
 
   <style>
     body{
@@ -17,7 +17,7 @@
       background:#fff;
       border-radius:18px;
       padding:22px 18px;
-      max-width:520px;
+      max-width:560px;
       width:100%;
       text-align:center;
       box-shadow:0 16px 40px rgba(0,0,0,.15);
@@ -26,18 +26,16 @@
     .sub{ font-size:13px; opacity:.75; line-height:1.5; }
 
     .row{
-      display:flex;
-      gap:10px;
-      justify-content:center;
-      flex-wrap:wrap;
-      margin:12px 0 10px 0;
+      display:flex; gap:10px;
+      justify-content:center; flex-wrap:wrap;
+      margin:12px 0 8px 0;
     }
     .stat{
       background:rgba(0,0,0,.06);
       padding:9px 12px;
       border-radius:12px;
       font-weight:900;
-      min-width:160px;
+      min-width:150px;
     }
 
     .board{
@@ -106,14 +104,14 @@
 
 <body>
   <div class="card">
-    <h1 id="title">😈 找出真爱心（困难版）</h1>
+    <h1 id="title">🃏 找出唯一不同</h1>
     <div id="desc" class="sub">
-      规则：<b>60 秒内找出 10 个真爱心 💗</b><br>
-      每一轮只有 1 个是真的。点错<b>扣 4 秒</b> 😈
+      规则：<b>60 秒内连过 3 关</b><br>
+      每一关只有 <b>1 个表情不一样</b>。点错会<b>扣 5 秒</b> 😈
     </div>
 
     <div class="row" id="stats">
-      <div class="stat">✅ 进度：<span id="round">0</span>/10</div>
+      <div class="stat">✅ 关卡：<span id="stage">1</span>/3</div>
       <div class="stat">⏳ 时间：<span id="time">60</span>s</div>
     </div>
 
@@ -122,7 +120,7 @@
 
     <div id="success" class="hidden">
       <div class="win">
-        🎉 通关成功！<br>
+        🎉 你太强了！<br>
         RM520 超级大奖已解锁 💗
       </div>
       <div class="hint">
@@ -139,30 +137,36 @@
   </div>
 
   <script>
-    // ——困难参数（你想更难我也能再加）——
+    // 参数（想更难我也能再调）
     const TOTAL_TIME = 60;
-    const NEED_ROUNDS = 10;  // 原本 6 -> 10
-    const TILES = 20;        // 原本 12 -> 20
-    const PENALTY = 4;       // 原本 2 -> 4
+    const STAGES = 3;
+    const TILES = 20;      // 每关格子数量（越大越难）
+    const PENALTY = 5;     // 点错扣秒
+
+    // 每一关用一组“几乎一样”的表情（只有一个不一样）
+    const stageSets = [
+      { same: "😶", diff: "😐" },  // 很像
+      { same: "🥺", diff: "😢" },  // 也像
+      { same: "🐱", diff: "🐶" },  // 容易误点
+    ];
 
     let started = false;
     let done = false;
     let timeLeft = TOTAL_TIME;
-    let round = 0;
+    let stage = 1;
     let timer = null;
-    let realIndex = 0;
+    let diffIndex = 0;
 
     const boardEl = document.getElementById("board");
     const toastEl = document.getElementById("toast");
     const timeEl = document.getElementById("time");
-    const roundEl = document.getElementById("round");
+    const stageEl = document.getElementById("stage");
 
     function startTimer(){
       timer = setInterval(() => {
         timeLeft--;
         if(timeLeft < 0) timeLeft = 0;
         timeEl.textContent = timeLeft;
-
         if(timeLeft <= 0){
           clearInterval(timer);
           if(!done) lose();
@@ -172,40 +176,25 @@
 
     function randInt(n){ return Math.floor(Math.random() * n); }
 
-    // 洗牌
-    function shuffle(arr){
-      const a = arr.slice();
-      for(let i=a.length-1;i>0;i--){
-        const j = Math.floor(Math.random()*(i+1));
-        [a[i],a[j]] = [a[j],a[i]];
-      }
-      return a;
+    function lockBoard(){
+      document.querySelectorAll(".tile").forEach(t => t.classList.add("disabled"));
     }
 
-    function buildRound(){
-      toastEl.textContent = "找出真正的 💗（只有 1 个）";
+    function buildStage(){
+      toastEl.textContent = "找出那个「不一样」的 😈";
       boardEl.innerHTML = "";
 
-      // 生成一组符号：1 个真爱心 + 其余假爱心
-      const symbols = Array(TILES).fill("❤️");
-      const truePos = randInt(TILES);
-      symbols[truePos] = "💗";
+      const set = stageSets[stage - 1] || stageSets[stageSets.length - 1];
 
-      // 再洗牌一次，让位置更随机
-      const shuffled = shuffle(symbols);
-      realIndex = shuffled.indexOf("💗");
+      diffIndex = randInt(TILES);
 
       for(let i=0; i<TILES; i++){
         const btn = document.createElement("div");
         btn.className = "tile";
-        btn.textContent = shuffled[i];
+        btn.textContent = (i === diffIndex) ? set.diff : set.same;
         btn.onclick = () => pick(i);
         boardEl.appendChild(btn);
       }
-    }
-
-    function lockBoard(){
-      document.querySelectorAll(".tile").forEach(t => t.classList.add("disabled"));
     }
 
     function pick(i){
@@ -216,18 +205,18 @@
         startTimer();
       }
 
-      if(i === realIndex){
+      if(i === diffIndex){
         lockBoard();
-        round++;
-        roundEl.textContent = round;
-        toastEl.textContent = "✅ 抓到真爱心！下一轮马上开始～";
+        toastEl.textContent = "✅ 找到了！下一关马上来…";
         setTimeout(() => {
-          if(round >= NEED_ROUNDS){
+          if(stage >= STAGES){
             win();
           }else{
-            buildRound();
+            stage++;
+            stageEl.textContent = stage;
+            buildStage();
           }
-        }, 380);
+        }, 450);
       }else{
         timeLeft = Math.max(0, timeLeft - PENALTY);
         timeEl.textContent = timeLeft;
@@ -260,7 +249,8 @@
       document.getElementById("fail").classList.remove("hidden");
     }
 
-    buildRound();
+    // 初始化第一关
+    buildStage();
   </script>
 </body>
 </html>
