@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>🎮 找出唯一不同（RM520关卡）</title>
+  <title>🎮 找出唯一不同（10关｜回退机制）</title>
 
   <style>
     body{
@@ -17,7 +17,7 @@
       background:#fff;
       border-radius:18px;
       padding:22px 18px;
-      max-width:560px;
+      max-width:580px;
       width:100%;
       text-align:center;
       box-shadow:0 16px 40px rgba(0,0,0,.15);
@@ -35,7 +35,7 @@
       padding:9px 12px;
       border-radius:12px;
       font-weight:900;
-      min-width:150px;
+      min-width:160px;
     }
 
     .board{
@@ -104,14 +104,15 @@
 
 <body>
   <div class="card">
-    <h1 id="title">🃏 找出唯一不同</h1>
+    <h1 id="title">😈 找出唯一不同（10关）</h1>
     <div id="desc" class="sub">
-      规则：<b>60 秒内连过 3 关</b><br>
-      每一关只有 <b>1 个表情不一样</b>。点错会<b>扣 5 秒</b> 😈
+      规则：<b>60 秒内连过 10 关</b><br>
+      每关只有 <b>1 个不一样</b>。点错会扣时间 😈<br>
+      <b>⚠️ 第 7 关开始：点错会回退到第 5 关</b>
     </div>
 
     <div class="row" id="stats">
-      <div class="stat">✅ 关卡：<span id="stage">1</span>/3</div>
+      <div class="stat">✅ 关卡：<span id="stage">1</span>/10</div>
       <div class="stat">⏳ 时间：<span id="time">60</span>s</div>
     </div>
 
@@ -120,7 +121,7 @@
 
     <div id="success" class="hidden">
       <div class="win">
-        🎉 你太强了！<br>
+        🎉 你居然通关了！<br>
         RM520 超级大奖已解锁 💗
       </div>
       <div class="hint">
@@ -137,119 +138,161 @@
   </div>
 
   <script>
-    // 参数（想更难我也能再调）
     const TOTAL_TIME = 60;
-    const STAGES = 3;
-    const TILES = 20;      // 每关格子数量（越大越难）
-    const PENALTY = 5;     // 点错扣秒
+    const STAGES = 10;
 
-    // 每一关用一组“几乎一样”的表情（只有一个不一样）
-    const stageSets = [
-      { same: "😶", diff: "😐" },  // 很像
-      { same: "🥺", diff: "😢" },  // 也像
-      { same: "🐱", diff: "🐶" },  // 容易误点
+    // 回退规则：从第 7 关开始，点错回到第 5 关
+    const FALLBACK_FROM = 7;
+    const FALLBACK_TO = 5;
+
+    // 难度随关卡上升
+    function tilesFor(stage){
+      if(stage <= 3) return 16;
+      if(stage <= 6) return 20;
+      if(stage <= 8) return 25;
+      return 30;
+    }
+    function penaltyFor(stage){
+      if(stage <= 3) return 4;
+      if(stage <= 6) return 5;
+      if(stage <= 8) return 6;
+      return 7;
+    }
+
+    const pairs = [
+      { same:"😶", diff:"😐" },
+      { same:"😶", diff:"😑" },
+      { same:"🥺", diff:"😢" },
+      { same:"🙂", diff:"😶" },
+      { same:"🐱", diff:"🐶" },
+      { same:"🍓", diff:"🍒" },
+      { same:"⭐️", diff:"🌟" },
+      { same:"💙", diff:"💜" },
+      { same:"⭕️", diff:"0️⃣" },
+      { same:"🔺", diff:"🔻" }
     ];
 
-    let started = false;
-    let done = false;
-    let timeLeft = TOTAL_TIME;
-    let stage = 1;
-    let timer = null;
-    let diffIndex = 0;
+    let started=false, done=false;
+    let timeLeft=TOTAL_TIME;
+    let stage=1;
+    let timer=null;
+    let diffIndex=0;
+    let currentTiles=tilesFor(stage);
+    let currentPenalty=penaltyFor(stage);
 
-    const boardEl = document.getElementById("board");
-    const toastEl = document.getElementById("toast");
-    const timeEl = document.getElementById("time");
-    const stageEl = document.getElementById("stage");
+    const boardEl=document.getElementById("board");
+    const toastEl=document.getElementById("toast");
+    const timeEl=document.getElementById("time");
+    const stageEl=document.getElementById("stage");
 
     function startTimer(){
-      timer = setInterval(() => {
+      timer=setInterval(()=>{
         timeLeft--;
-        if(timeLeft < 0) timeLeft = 0;
-        timeEl.textContent = timeLeft;
-        if(timeLeft <= 0){
+        if(timeLeft<0) timeLeft=0;
+        timeEl.textContent=timeLeft;
+        if(timeLeft<=0){
           clearInterval(timer);
           if(!done) lose();
         }
-      }, 1000);
+      },1000);
     }
 
-    function randInt(n){ return Math.floor(Math.random() * n); }
+    function randInt(n){ return Math.floor(Math.random()*n); }
 
     function lockBoard(){
-      document.querySelectorAll(".tile").forEach(t => t.classList.add("disabled"));
+      document.querySelectorAll(".tile").forEach(t=>t.classList.add("disabled"));
     }
 
     function buildStage(){
-      toastEl.textContent = "找出那个「不一样」的 😈";
+      currentTiles = tilesFor(stage);
+      currentPenalty = penaltyFor(stage);
+
+      toastEl.textContent = `第 ${stage} 关：找出不一样的（点错扣 ${currentPenalty}s）`;
       boardEl.innerHTML = "";
 
-      const set = stageSets[stage - 1] || stageSets[stageSets.length - 1];
+      const pair = pairs[(stage-1) % pairs.length];
+      diffIndex = randInt(currentTiles);
 
-      diffIndex = randInt(TILES);
-
-      for(let i=0; i<TILES; i++){
-        const btn = document.createElement("div");
-        btn.className = "tile";
-        btn.textContent = (i === diffIndex) ? set.diff : set.same;
-        btn.onclick = () => pick(i);
+      for(let i=0;i<currentTiles;i++){
+        const btn=document.createElement("div");
+        btn.className="tile";
+        btn.textContent = (i===diffIndex) ? pair.diff : pair.same;
+        btn.onclick=()=>pick(i);
         boardEl.appendChild(btn);
       }
+    }
+
+    function goToStage(n){
+      stage = n;
+      stageEl.textContent = stage;
+      buildStage();
     }
 
     function pick(i){
       if(done) return;
 
       if(!started){
-        started = true;
+        started=true;
         startTimer();
       }
 
-      if(i === diffIndex){
+      if(i===diffIndex){
         lockBoard();
-        toastEl.textContent = "✅ 找到了！下一关马上来…";
-        setTimeout(() => {
-          if(stage >= STAGES){
+        toastEl.textContent="✅ 对了！下一关马上来…";
+        setTimeout(()=>{
+          if(stage>=STAGES){
             win();
           }else{
-            stage++;
-            stageEl.textContent = stage;
-            buildStage();
+            goToStage(stage + 1);
           }
-        }, 450);
+        },420);
       }else{
-        timeLeft = Math.max(0, timeLeft - PENALTY);
+        // 先扣时间
+        timeLeft = Math.max(0, timeLeft - currentPenalty);
         timeEl.textContent = timeLeft;
-        toastEl.textContent = `❌ 不是这个！扣 ${PENALTY} 秒 😈`;
-        if(timeLeft <= 0){
-          clearInterval(timer);
-          lose();
+
+        // 回退机制
+        if(stage >= FALLBACK_FROM){
+          toastEl.textContent = `💥 错！扣 ${currentPenalty}s + 回退到第 ${FALLBACK_TO} 关 😈`;
+          setTimeout(() => {
+            if(timeLeft<=0){
+              clearInterval(timer);
+              lose();
+            }else{
+              goToStage(FALLBACK_TO);
+            }
+          }, 450);
+        }else{
+          toastEl.textContent = `❌ 错！扣 ${currentPenalty}s 😈`;
+          if(timeLeft<=0){
+            clearInterval(timer);
+            lose();
+          }
         }
       }
     }
 
     function win(){
-      done = true;
+      done=true;
       clearInterval(timer);
       boardEl.classList.add("hidden");
       document.getElementById("stats").classList.add("hidden");
       document.getElementById("desc").classList.add("hidden");
-      document.getElementById("title").textContent = "🎉 解锁成功";
+      document.getElementById("title").textContent="🎉 解锁成功";
       toastEl.classList.add("hidden");
       document.getElementById("success").classList.remove("hidden");
     }
 
     function lose(){
-      done = true;
+      done=true;
       boardEl.classList.add("hidden");
       document.getElementById("stats").classList.add("hidden");
       toastEl.classList.add("hidden");
       document.getElementById("desc").classList.add("hidden");
-      document.getElementById("title").textContent = "😭 失败了";
+      document.getElementById("title").textContent="😭 失败了";
       document.getElementById("fail").classList.remove("hidden");
     }
 
-    // 初始化第一关
     buildStage();
   </script>
 </body>
