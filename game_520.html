@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>🎮 RM520 终极关卡</title>
+
+  <style>
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Arial;
+      background:radial-gradient(circle at top,#ffffff,#ffe8ef,#ffd2e0);
+      padding:24px;
+    }
+    .card{
+      background:#fff;
+      border-radius:18px;
+      padding:26px 20px;
+      max-width:420px;
+      width:100%;
+      text-align:center;
+      box-shadow:0 16px 40px rgba(0,0,0,.15);
+    }
+    h1{ font-size:20px; margin-bottom:10px; }
+    .sub{ font-size:13px; opacity:.7; line-height:1.5; }
+
+    .stat{
+      margin-top:12px;
+      font-weight:800;
+    }
+
+    .btn{
+      margin-top:16px;
+      width:100%;
+      padding:14px;
+      border-radius:14px;
+      border:none;
+      background:#FF8996;
+      color:#fff;
+      font-size:18px;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .hidden{ display:none; }
+
+    .win{
+      font-size:18px;
+      font-weight:900;
+      line-height:1.6;
+      margin-top:10px;
+    }
+
+    .hint{
+      margin-top:10px;
+      font-size:12px;
+      opacity:.65;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1 id="title">😈 RM520 关卡</h1>
+    <div id="desc" class="sub">
+      规则：<b>点 10 次 ❤️</b> 才能解锁超级大奖<br>
+      （作弊会被我发现 😆）
+    </div>
+
+    <div id="game">
+      <div class="stat">❤️ 已点击：<span id="count">0</span>/10</div>
+      <button class="btn" onclick="tap()">点我 ❤️</button>
+    </div>
+
+    <div id="success" class="hidden">
+      <div class="win">
+        🎉 通关成功！<br>
+        RM520 超级大奖已解锁 💗
+      </div>
+      <div class="hint">
+        👉 请把这一页截图发给我<br>
+        我就立刻把 RM520 转给你 😘
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let count = 0;
+    function tap(){
+      count++;
+      document.getElementById("count").textContent = count;
+      if(count >= 10){
+        document.getElementById("game").classList.add("hidden");
+        document.getElementById("title").textContent = "🎉 解锁成功";
+        document.getElementById("desc").classList.add("hidden");
+        document.getElementById("success").classList.remove("hidden");
+      }
+    }
+  </script>
+</body>
+</html>
