@@ -3,15 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>🎮 找出真爱心（RM520关卡）</title>
+  <title>🎮 找出真爱心（困难版）</title>
 
   <style>
     body{
-      margin:0;
-      min-height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
+      margin:0; min-height:100vh;
+      display:flex; align-items:center; justify-content:center;
       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Arial;
       background:radial-gradient(circle at top,#ffffff,#ffe8ef,#ffd2e0);
       padding:22px;
@@ -20,7 +17,7 @@
       background:#fff;
       border-radius:18px;
       padding:22px 18px;
-      max-width:460px;
+      max-width:520px;
       width:100%;
       text-align:center;
       box-shadow:0 16px 40px rgba(0,0,0,.15);
@@ -40,13 +37,13 @@
       padding:9px 12px;
       border-radius:12px;
       font-weight:900;
-      min-width:140px;
+      min-width:160px;
     }
 
     .board{
       margin-top:12px;
       display:grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap:10px;
     }
 
@@ -60,15 +57,16 @@
       cursor:pointer;
       user-select:none;
       box-shadow:0 10px 20px rgba(0,0,0,.07);
-      transition: transform .08s ease;
+      transition: transform .08s ease, opacity .12s ease;
     }
     .tile:active{ transform: scale(.98); }
+    .tile.disabled{ opacity:.35; cursor:not-allowed; }
 
     .toast{
       margin-top:10px;
       font-size:13px;
-      font-weight:800;
-      min-height:20px;
+      font-weight:900;
+      min-height:22px;
     }
 
     .hidden{ display:none; }
@@ -85,7 +83,6 @@
       font-weight:900;
       cursor:pointer;
     }
-    .btn.green{ background:#28c76f; }
 
     .win{
       font-size:18px;
@@ -100,22 +97,23 @@
       line-height:1.5;
     }
 
-    @media (max-width:380px){
-      .board{ grid-template-columns: repeat(3, 1fr); }
+    @media (max-width:420px){
+      .board{ grid-template-columns: repeat(4, 1fr); }
+      .stat{ min-width:140px; }
     }
   </style>
 </head>
 
 <body>
   <div class="card">
-    <h1 id="title">🎯 找出真爱心</h1>
+    <h1 id="title">😈 找出真爱心（困难版）</h1>
     <div id="desc" class="sub">
-      规则：<b>60 秒内找出 6 个真爱心 💗</b><br>
-      每一轮只有 1 个是真的。点错会<b>扣 2 秒</b> 😈
+      规则：<b>60 秒内找出 10 个真爱心 💗</b><br>
+      每一轮只有 1 个是真的。点错<b>扣 4 秒</b> 😈
     </div>
 
     <div class="row" id="stats">
-      <div class="stat">✅ 进度：<span id="round">0</span>/6</div>
+      <div class="stat">✅ 进度：<span id="round">0</span>/10</div>
       <div class="stat">⏳ 时间：<span id="time">60</span>s</div>
     </div>
 
@@ -141,11 +139,11 @@
   </div>
 
   <script>
-    // 游戏参数（可改）
+    // ——困难参数（你想更难我也能再加）——
     const TOTAL_TIME = 60;
-    const NEED_ROUNDS = 6;
-    const TILES = 12;      // 一轮出现多少个
-    const PENALTY = 2;     // 点错扣几秒
+    const NEED_ROUNDS = 10;  // 原本 6 -> 10
+    const TILES = 20;        // 原本 12 -> 20
+    const PENALTY = 4;       // 原本 2 -> 4
 
     let started = false;
     let done = false;
@@ -174,23 +172,40 @@
 
     function randInt(n){ return Math.floor(Math.random() * n); }
 
+    // 洗牌
+    function shuffle(arr){
+      const a = arr.slice();
+      for(let i=a.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [a[i],a[j]] = [a[j],a[i]];
+      }
+      return a;
+    }
+
     function buildRound(){
       toastEl.textContent = "找出真正的 💗（只有 1 个）";
       boardEl.innerHTML = "";
 
-      // 随机决定哪一个是“真爱心”
-      realIndex = randInt(TILES);
+      // 生成一组符号：1 个真爱心 + 其余假爱心
+      const symbols = Array(TILES).fill("❤️");
+      const truePos = randInt(TILES);
+      symbols[truePos] = "💗";
+
+      // 再洗牌一次，让位置更随机
+      const shuffled = shuffle(symbols);
+      realIndex = shuffled.indexOf("💗");
 
       for(let i=0; i<TILES; i++){
         const btn = document.createElement("div");
         btn.className = "tile";
-
-        // 假爱心：❤️  真爱心：💗（更明显但需要找）
-        btn.textContent = (i === realIndex) ? "💗" : "❤️";
-
+        btn.textContent = shuffled[i];
         btn.onclick = () => pick(i);
         boardEl.appendChild(btn);
       }
+    }
+
+    function lockBoard(){
+      document.querySelectorAll(".tile").forEach(t => t.classList.add("disabled"));
     }
 
     function pick(i){
@@ -202,21 +217,21 @@
       }
 
       if(i === realIndex){
+        lockBoard();
         round++;
         roundEl.textContent = round;
-        toastEl.textContent = "✅ 抓到真爱心！继续下一轮～";
-        // 下一轮稍微“抖一下”增加爽感
+        toastEl.textContent = "✅ 抓到真爱心！下一轮马上开始～";
         setTimeout(() => {
           if(round >= NEED_ROUNDS){
             win();
           }else{
             buildRound();
           }
-        }, 450);
+        }, 380);
       }else{
         timeLeft = Math.max(0, timeLeft - PENALTY);
         timeEl.textContent = timeLeft;
-        toastEl.textContent = `❌ 不是这个！扣 ${PENALTY} 秒 😈 再找！`;
+        toastEl.textContent = `❌ 不是这个！扣 ${PENALTY} 秒 😈`;
         if(timeLeft <= 0){
           clearInterval(timer);
           lose();
@@ -245,7 +260,6 @@
       document.getElementById("fail").classList.remove("hidden");
     }
 
-    // 初始化第一轮
     buildRound();
   </script>
 </body>
